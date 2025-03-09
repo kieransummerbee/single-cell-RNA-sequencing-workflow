@@ -18,4 +18,26 @@ library(patchwork)
 merged_hpsc <- readRDS(file ="~/CleanWorkflowFrampton/anchors")
 ```
 
+```{r}
+#Split the object into a list of three repeats
+merged_hpsc.list <- SplitObject(merged_hpsc, split.by = 'orig.ident')
+```
 
+```{r}
+Identify common genes across datasets
+common_genes <- Reduce(intersect, lapply(merged_hpsc.list, rownames))
+
+Subset each dataset to retain only the common genes
+merged_hpsc.list <- lapply(merged_hpsc.list, function(x) {
+  x <- x[common_genes, ]
+  return(x)
+})
+
+Normalize data and find variable features, including immunoglobulin genes
+merged_hpsc.list <- lapply(merged_hpsc.list, function(x) {
+  x <- NormalizeData(x)
+  x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 2000)
+  VariableFeatures(x) <- unique(VariableFeatures(x)
+  return(x)
+})
+```
