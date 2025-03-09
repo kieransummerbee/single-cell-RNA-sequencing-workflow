@@ -1,0 +1,21 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#Libraries for scRNA-seq processing
+#install.packages('Seurat')
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(Seurat)
+library(patchwork)
+```
+
+```{r}
+#Read in the seurats object
+merged_hpsc <- readRDS(file ="~/CleanWorkflowFrampton/anchors")
+```
+
+

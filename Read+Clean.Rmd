@@ -1,0 +1,52 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r libraries}
+#Libraries for scRNA-seq processing
+#install.packages('Seurat')
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(Seurat)
+library(patchwork)
+```
+
+```{r Read10X}
+#Using Read10X to align barcodes, gene counts and symbols and store as dgCMatrix
+youngA <- Read10X(data.dir = "/rds/projects/v/varnaic-msc-bioinf-group-2023/Data/GSE147729/GSM4443875")
+youngB <- Read10X(data.dir = "/rds/projects/v/varnaic-msc-bioinf-group-2023/Data/GSE147729/GSM4443876")
+oldA <- Read10X(data.dir = "/rds/projects/v/varnaic-msc-bioinf-group-2023/Data/GSE147729/GSM4443877")
+oldB <- Read10X(data.dir = "/rds/projects/v/varnaic-msc-bioinf-group-2023/Data/GSE147729/GSM4443878")
+```
+
+```{r Seurat Object}
+#Turn dgcMatrix objects into Seurats objects to run analysis
+#Some preliminary data cleaning and removing any empty reads or droplets with multiple cells
+youngA <- CreateSeuratObject(counts = youngA, project = "youngA", min.cells = 3, min.features = 200)
+youngB <- CreateSeuratObject(counts = youngB, project = "youngB", min.cells = 3, min.features = 200)
+oldA <- CreateSeuratObject(counts = oldA, project = "oldA", min.cells = 3, min.features = 200)
+oldB <- CreateSeuratObject(counts = oldB, project = "oldB", min.cells = 3, min.features = 200)
+```
+
+```{r Merge objects}
+#Merge the 4 data sets into one for analysis
+merged_hpsc <- merge(youngA, y = c(youngB, oldA, oldB), add.cell.ids = ls()[1:4], project = "merged_hpsc")
+```
+
+```{r Clean data}
+#Creates a new column in metadata for mitochondrial RNA
+merged_hpsc <- PercentageFeatureSet(merged_hpsc, pattern = "^mt-", col.name = "percent.mt")
+```
+
+```{r}
+#Data cleaning removing cells with high mt RNA these are likely dying cells
+#Further removal of poor reads removing cells with too many or too few features
+merged_hpsc <- subset(merged_hpsc, subset = nFeature_RNA > 500 & nFeature_RNA < 4000 & nCount_RNA < 20000 & percent.mt < 10)
+```
+
+```{r Save data}
+saveRDS(merged_hpsc, file = "~/CleanWorkflowFrampton/merged_hpsc_clean.rds")
+```
+

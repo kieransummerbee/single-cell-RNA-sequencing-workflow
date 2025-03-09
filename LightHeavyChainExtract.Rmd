@@ -1,0 +1,47 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r libraries}
+#Libraries for scRNA-seq processing
+#install.packages('Seurat')
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(Seurat)
+library(patchwork)
+```
+
+```{r readRDS}
+# Load the cleaned Seurat object and integrated objects
+merged_hpsc <- readRDS(file ="~/CleanWorkflowFrampton//merged_hpsc_clean.rds")
+```
+
+```{r ig grep}
+#Before running a variable feature analysis make a list of all Immunoglobulin genes
+#Immunoglobulin name patterns
+ig_light <- c("^Igk", "^Igl")
+ig_heavy <- c("^Igh")
+
+#Identify any immunoglobulin genes
+is_heavy <- function(gene) {
+  any(sapply(ig_heavy, function(pattern) grepl(pattern, gene)))
+}
+
+is_light <- function(gene) {
+  any(sapply(ig_light, function(pattern) grepl(pattern, gene)))
+}
+
+#Extract all genes starting with "Ig"
+all_ig_genes <- grep("^Ig", rownames(merged_hpsc), value = TRUE)
+
+#Filter out non-immunoglobulin genes
+ig_heavy_genes <- all_ig_genes[sapply(all_ig_genes, is_heavy)]
+ig_light_genes <- all_ig_genes[sapply(all_ig_genes, is_light)]
+```
+
+```{r Filter the genes manually}
+saveRDS(merged_hpsc, file = "~/CleanWorkflowFrampton/merged_hpsc_ig.rds")
+```
+
