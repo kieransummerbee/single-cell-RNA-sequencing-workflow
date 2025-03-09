@@ -41,3 +41,13 @@ merged_hpsc.list <- lapply(merged_hpsc.list, function(x) {
   return(x)
 })
 ```
+
+```{r}
+#Identify anchors using common genes
+anchors <- FindIntegrationAnchors(object.list = merged_hpsc.list, anchor.features = common_genes, normalization.method = "LogNormalize")
+```
+
+```{r}
+Integrate data using the newly generated anchors
+integrated_data <- IntegrateData(anchorset = anchors, normalization.method = "LogNormalize", verbose = TRUE)
+```
